@@ -4,15 +4,15 @@ buildscript {
     ext.kotlin_version = '1.8.0'
 
     repositories {
+        mavenCentral()
+        google()
+        maven { url 'https://jitpack.io' }
+        gradlePluginPortal()
+
         maven { url = uri("https://maven.aliyun.com/repository/central") }
         maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
-
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-        gradlePluginPortal()
-        google()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.4.2'
@@ -25,15 +25,15 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenCentral()
+        google()
+        maven { url 'https://jitpack.io' }
+        gradlePluginPortal()
+
         maven { url = uri("https://maven.aliyun.com/repository/central") }
         maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
-
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-        gradlePluginPortal()
-        google()
     }
 
     gradle.taskGraph.whenReady {
