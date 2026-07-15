@@ -67,7 +67,7 @@ jobs:
           fi
 
       - name: Build APK
-        run: ./gradlew :push:assembleNormalRelease
+        run: ./gradlew :push:assembleNormalRelease -PversionName=${{ steps.version.outputs.name }}
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
