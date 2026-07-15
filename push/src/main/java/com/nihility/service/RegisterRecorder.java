@@ -58,6 +58,10 @@ public class RegisterRecorder {
         EventDb.insertEvent(Event.ResultType.OK,
                 new RegistrationType(null, pkg, null)
         );
+        // Mark as registered immediately since the registration was initiated
+        RegisteredApplication app = RegisteredApplicationDb.registerApplication(pkg);
+        app.setRegisteredType(RegisteredApplication.RegisteredType.Registered);
+        RegisteredApplicationDb.update(app);
     }
 
     boolean isRegisterAppRequest(Intent intent) {

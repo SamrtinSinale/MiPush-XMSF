@@ -240,7 +240,13 @@ public class ApplicationPageOperation {
             } else if (registrationInfo.unregistered.contains(pkg)) {
                 application.setRegisteredType(RegisteredApplication.RegisteredType.Unregistered);
             } else {
-                application.setRegisteredType(RegisteredApplication.RegisteredType.NotRegistered);
+                // No registration event in EventDb.
+                // If the app has received push messages, it is registered.
+                if (application.lastReceiveTime != null && application.lastReceiveTime.getTime() > 0) {
+                    application.setRegisteredType(RegisteredApplication.RegisteredType.Registered);
+                } else {
+                    application.setRegisteredType(RegisteredApplication.RegisteredType.NotRegistered);
+                }
             }
             RegisteredApplicationDb.update(application);
         }

@@ -128,27 +128,45 @@ public class EventDb {
     }
 
     public static RegistrationInfo queryRegistered() {
+        // Query Registration, RegistrationResult and UnRegistration events, ordered by date descending.
+        // Registration (type 2) is stored by RegisterRecorder when an app requests registration.
+        // RegistrationResult (type 21) is stored when the server responds.
+        // UnRegistration (type 20) is stored when an app unregisters.
         QueryBuilder<Event> query = daoSession.queryBuilder(Event.class)
-                .where(EventDao.Properties.Type.in(Event.Type.RegistrationResult, Event.Type.UnRegistration))
-                .where(new WhereCondition.StringCondition("1" +
-                        " GROUP BY " + EventDao.Properties.Pkg.columnName +
-                        " HAVING MAX(" + EventDao.Properties.Date.columnName + ")"));
+                .where(EventDao.Properties.Type.in(Event.Type.Registration,
+                        Event.Type.RegistrationResult, Event.Type.UnRegistration))
+                .orderDesc(EventDao.Properties.Date);
         List<Event> events = query.list();
 
         RegistrationInfo info = new RegistrationInfo();
+        Set<String> seenPkgs = new HashSet<>();
         for (Event event : events) {
-            XmPushActionContainer container = XMPushUtils.packToContainer(event.getPayload());
-            XmPushActionRegistrationResult data = null;
-            try {
-                data = (XmPushActionRegistrationResult)
-                        ConvertUtils.getResponseMessageBodyFromContainer(container,
-                                RegSecUtils.getRegSec(container));
-            } catch (Exception ignored) {
+            // Only process the first (latest) event per package
+            if (!seenPkgs.add(event.getPkg())) {
+                continue;
             }
-            if (event.getType() == Event.Type.RegistrationResult && (data == null || data.errorCode == 0)) {
-                info.registered.add(event.getPkg());
-            } else {
+            int type = event.getType();
+            if (type == Event.Type.UnRegistration) {
+                // Explicitly unregistered
                 info.unregistered.add(event.getPkg());
+            } else if (type == Event.Type.RegistrationResult) {
+                // Server responded with a registration result
+                XmPushActionContainer container = XMPushUtils.packToContainer(event.getPayload());
+                XmPushActionRegistrationResult data = null;
+                try {
+                    data = (XmPushActionRegistrationResult)
+                            ConvertUtils.getResponseMessageBodyFromContainer(container,
+                                    RegSecUtils.getRegSec(container));
+                } catch (Exception ignored) {
+                }
+                if (data == null || data.errorCode == 0) {
+                    info.registered.add(event.getPkg());
+                } else {
+                    info.unregistered.add(event.getPkg());
+                }
+            } else {
+                // Registration (type 2): app requested registration, treat as registered
+                info.registered.add(event.getPkg());
             }
         }
         return info;
